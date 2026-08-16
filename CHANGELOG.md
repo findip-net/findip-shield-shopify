@@ -1,5 +1,9 @@
 # @shopify/shopify-app-template-react-router
 
+## 2026.08.16
+- Switch the Prisma datasource from SQLite to PostgreSQL (`env("DATABASE_URL")`), regenerate the session-table migration for PostgreSQL, and add `docker-compose.yml` for the local development database. SQLite is removed entirely so development and production share one schema and engine.
+- Add an unauthenticated `/health` route for infrastructure probes and a CI workflow (typecheck, lint, build) on GitHub-hosted runners.
+
 ## 2026.02.09
 - Add declarative product metafield definition and demonstrate metafield usage in the product creation flow
 - Add declarative metaobject definition and demonstrate metaobject upsert in the product creation flow

@@ -18,15 +18,16 @@ The web pixel declares analytics processing to Shopify and is executed according
 
 ## Local development
 
-Requirements: Node.js 22 LTS, Shopify CLI, a Shopify Partner organization, and a development store.
+Requirements: Node.js 22 LTS, Docker, Shopify CLI, a Shopify Partner organization, and a development store.
 
 ```bash
 npm install
+docker compose up -d
 npm run setup
 shopify app dev
 ```
 
-The local session database is SQLite. Use durable shared storage such as PostgreSQL before deploying more than one production instance.
+The session database is PostgreSQL in every environment. Locally it runs from `docker-compose.yml`; set `DATABASE_URL` in `.env` (for the compose default: `postgresql://shopify:shopify@localhost:5432/findip_shopify`). Production supplies its own `DATABASE_URL`.
 
 ## Validation
 

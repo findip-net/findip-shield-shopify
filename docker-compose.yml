@@ -1,0 +1,22 @@
+# Local development database. Production uses a managed PostgreSQL
+# instance supplied via DATABASE_URL — same schema, same engine.
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: findip-shield-shopify-postgres
+    environment:
+      POSTGRES_USER: shopify
+      POSTGRES_PASSWORD: shopify
+      POSTGRES_DB: findip_shopify
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shopify -d findip_shopify"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:

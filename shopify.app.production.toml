@@ -1,0 +1,33 @@
+# Production configuration — FindIP Shield App Store app.
+# Deployed backend: findip-shopify-app on k3s behind the shopify.findip.net
+# Cloudflare Tunnel. Never run `shopify app dev` against this config.
+
+client_id = "08983a97da8dd462fa367974c2831d5f"
+name = "FindIP Shield"
+application_url = "https://shopify.findip.net"
+embedded = true
+
+[access_scopes]
+scopes = "read_customer_events,write_pixels"
+
+[auth]
+redirect_urls = [ "https://shopify.findip.net/auth/callback" ]
+
+[webhooks]
+api_version = "2026-10"
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/uninstalled"
+  topics = [ "app/uninstalled" ]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/app/scopes_update"
+  topics = [ "app/scopes_update" ]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/compliance"
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
+
+[build]
+include_config_on_deploy = true
+automatically_update_urls_on_dev = false

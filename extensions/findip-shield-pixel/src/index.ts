@@ -14,6 +14,15 @@ function createSessionId() {
   return `shp_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 14)}`;
 }
 
+function stripUrlDetails(value: string) {
+  try {
+    const parsed = new URL(value);
+    return `${parsed.origin}${parsed.pathname}`;
+  } catch {
+    return "";
+  }
+}
+
 register(({analytics, browser, settings}) => {
   const siteKey = typeof settings.siteKey === "string" ? settings.siteKey.trim() : "";
   if (!/^pub_[A-Za-z0-9_-]+$/.test(siteKey)) return;
@@ -46,8 +55,7 @@ register(({analytics, browser, settings}) => {
       page: {
         url: `${location.origin}${location.pathname}`,
         path: location.pathname,
-        title: event.context.document.title,
-        referrer: event.context.document.referrer,
+        referrer: stripUrlDetails(event.context.document.referrer),
       },
       session: {session_id: sessionId},
       browser: {

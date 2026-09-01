@@ -7,7 +7,7 @@ import {authenticate} from "../shopify.server";
 
 type AdminClient = Awaited<ReturnType<typeof authenticate.admin>>["admin"];
 type PixelResponse = {
-  data?: {webPixel?: {id: string; settings: {siteKey?: string} | null} | null};
+  data?: {webPixel?: {id: string; settings: unknown} | null};
   errors?: Array<{message: string}>;
 };
 type MutationResponse = {
@@ -25,6 +25,23 @@ type ActionResponse = {
   siteKey?: string;
   error: string | null;
 };
+
+function getPixelSiteKey(settings: unknown) {
+  let parsed = settings;
+  if (typeof parsed === "string") {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch {
+      return "";
+    }
+  }
+
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return "";
+  const siteKey = (parsed as Record<string, unknown>).siteKey;
+  return typeof siteKey === "string" && /^pub_[A-Za-z0-9_-]+$/.test(siteKey.trim())
+    ? siteKey.trim()
+    : "";
+}
 
 async function getPixel(admin: AdminClient) {
   try {
@@ -45,9 +62,10 @@ async function getPixel(admin: AdminClient) {
 export const loader = async ({request}: LoaderFunctionArgs) => {
   const {admin, session} = await authenticate.admin(request);
   const result = await getPixel(admin);
+  const siteKey = getPixelSiteKey(result.data?.webPixel?.settings);
   return {
-    connected: Boolean(result.data?.webPixel?.id),
-    siteKey: result.data?.webPixel?.settings?.siteKey ?? "",
+    connected: Boolean(result.data?.webPixel?.id && siteKey),
+    siteKey,
     shopDomain: session.shop,
   };
 };
@@ -69,11 +87,12 @@ export const action = async ({request}: ActionFunctionArgs) => {
           error: "No FindIP Shield Web Pixel is connected. Add your public site key first.",
         } satisfies ActionResponse;
       }
-      if (!pixel.settings?.siteKey) {
+      const siteKey = getPixelSiteKey(pixel.settings);
+      if (!siteKey) {
         return {
           intent,
           ok: false,
-          connected: true,
+          connected: false,
           error: "The Web Pixel exists, but its public site key is missing. Save the connection again.",
         } satisfies ActionResponse;
       }
@@ -81,7 +100,7 @@ export const action = async ({request}: ActionFunctionArgs) => {
         intent,
         ok: true,
         connected: true,
-        siteKey: pixel.settings.siteKey,
+        siteKey,
         error: null,
       } satisfies ActionResponse;
     } catch {
@@ -119,7 +138,9 @@ export const action = async ({request}: ActionFunctionArgs) => {
             }
           }`;
     const response = await admin.graphql(mutation, {
-      variables: pixelId ? {id: pixelId, settings: {siteKey}} : {settings: {siteKey}},
+      variables: pixelId
+        ? {id: pixelId, settings: JSON.stringify({siteKey})}
+        : {settings: JSON.stringify({siteKey})},
     });
     const result = (await response.json()) as MutationResponse;
     const userErrors = pixelId

@@ -1,5 +1,8 @@
 # @shopify/shopify-app-template-react-router
 
+## 2026.09.01
+- Add a first-run Shopify setup guide with storefront-domain context, clearer connection errors, an in-app Web Pixel connection test, and a direct path to verify the first Shield event.
+
 ## 2026.08.16
 - Switch the Prisma datasource from SQLite to PostgreSQL (`env("DATABASE_URL")`), regenerate the session-table migration for PostgreSQL, and add `docker-compose.yml` for the local development database. SQLite is removed entirely so development and production share one schema and engine.
 - Add an unauthenticated `/health` route for infrastructure probes and a CI workflow (typecheck, lint, build) on GitHub-hosted runners.

@@ -4,9 +4,22 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { AppProvider } from "@shopify/shopify-app-react-router/react";
 
 import { authenticate } from "../shopify.server";
+import {reportShopifyActivation} from "../activation.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
+  const {session} = await authenticate.admin(request);
+  // First authenticated app open is the durable install-complete boundary.
+  // Replays are safe because the Shield ledger is unique per shop/milestone.
+  await Promise.all([
+    reportShopifyActivation({
+      eventName: "shopify_install_completed",
+      shopDomain: session.shop,
+    }),
+    reportShopifyActivation({
+      eventName: "shopify_app_opened",
+      shopDomain: session.shop,
+    }),
+  ]);
 
   // eslint-disable-next-line no-undef
   return { apiKey: process.env.SHOPIFY_API_KEY || "" };

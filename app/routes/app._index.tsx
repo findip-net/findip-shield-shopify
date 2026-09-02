@@ -4,6 +4,7 @@ import {useFetcher, useLoaderData} from "react-router";
 import {useAppBridge} from "@shopify/app-bridge-react";
 import {boundary} from "@shopify/shopify-app-react-router/server";
 import {authenticate} from "../shopify.server";
+import {reportShopifyActivation} from "../activation.server";
 
 type AdminClient = Awaited<ReturnType<typeof authenticate.admin>>["admin"];
 type PixelResponse = {
@@ -63,6 +64,13 @@ export const loader = async ({request}: LoaderFunctionArgs) => {
   const {admin, session} = await authenticate.admin(request);
   const result = await getPixel(admin);
   const siteKey = getPixelSiteKey(result.data?.webPixel?.settings);
+  if (result.data?.webPixel?.id && siteKey) {
+    await reportShopifyActivation({
+      eventName: "shopify_pixel_connected",
+      shopDomain: session.shop,
+      siteKey,
+    });
+  }
   return {
     connected: Boolean(result.data?.webPixel?.id && siteKey),
     siteKey,
@@ -71,7 +79,7 @@ export const loader = async ({request}: LoaderFunctionArgs) => {
 };
 
 export const action = async ({request}: ActionFunctionArgs) => {
-  const {admin} = await authenticate.admin(request);
+  const {admin, session} = await authenticate.admin(request);
   const formData = await request.formData();
   const intent = formData.get("intent") === "verify" ? "verify" : "connect";
 
@@ -96,6 +104,11 @@ export const action = async ({request}: ActionFunctionArgs) => {
           error: "The Web Pixel exists, but its public site key is missing. Save the connection again.",
         } satisfies ActionResponse;
       }
+      await reportShopifyActivation({
+        eventName: "shopify_connection_verified",
+        shopDomain: session.shop,
+        siteKey,
+      });
       return {
         intent,
         ok: true,
@@ -147,20 +160,26 @@ export const action = async ({request}: ActionFunctionArgs) => {
       ? result.data?.webPixelUpdate?.userErrors
       : result.data?.webPixelCreate?.userErrors;
     const error = userErrors?.[0]?.message ?? result.errors?.[0]?.message;
-    return error
-      ? {
+    if (error) {
+      return {
           intent,
           ok: false,
           connected: Boolean(pixelId),
           error: `Shopify could not save the Web Pixel: ${error}`,
-        } satisfies ActionResponse
-      : {
-          intent,
-          ok: true,
-          connected: true,
-          siteKey,
-          error: null,
         } satisfies ActionResponse;
+    }
+    await reportShopifyActivation({
+      eventName: "shopify_pixel_connected",
+      shopDomain: session.shop,
+      siteKey,
+    });
+    return {
+      intent,
+      ok: true,
+      connected: true,
+      siteKey,
+      error: null,
+    } satisfies ActionResponse;
   } catch {
     return {
       intent,

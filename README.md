@@ -2,6 +2,14 @@
 
 FindIP Shield adds consent-aware visitor network risk detection to Shopify storefronts. It uses Shopify's Web Pixels API to send privacy-minimized event metadata to FindIP Shield, where the visitor IP observed by FindIP's servers is evaluated for VPN, proxy, Tor, hosting, datacenter, and malicious-network signals.
 
+## See Shield in action
+
+[![A sample sign-up arrives through a VPN. FindIP Shield shows the reasons behind its risk score, follows the session across networks, and records what the page did](.github/media/shield-signup-insight-teaser.gif)](https://www.findip.net/assets/videos/shield-signup-insight.mp4)
+
+▶ **[Watch with sound (0:30)](https://www.findip.net/assets/videos/shield-signup-insight.mp4)** · [Try the interactive demo](https://www.findip.net/shield/demo?utm_source=github&utm_medium=readme&utm_campaign=shield_clips&utm_content=findip-shield-shopify) · [Explore FindIP Shield](https://www.findip.net/shield/overview?utm_source=github&utm_medium=readme&utm_campaign=shield_clips&utm_content=findip-shield-shopify)
+
+This is the Shield dashboard that a connected storefront reports to, shown with sample data: each visit with its risk score, the reasons behind it, and a recommendation. The Shopify app reports signals; it does not block shoppers.
+
 ## Privacy boundary
 
 The integration does **not** transmit customer names, emails, phone numbers, postal addresses, Shopify customer IDs, order IDs, cart contents, search queries, or payment details. Page URLs are stripped of query strings and fragments. A random, session-only identifier connects events within one browser session.

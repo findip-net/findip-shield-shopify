@@ -309,8 +309,8 @@ export default function Index() {
               <s-stack direction="block" gap="small-200">
                 <s-heading>Your Shield dashboard</s-heading>
                 <s-paragraph color="subdued">
-                  Is it working, what happened this week, and what to do: all of it is in Shield, under this
-                  store's Home.
+                  Is it working, what happened this week, and what to do: all of it is in Shield, on the Home
+                  page of this store.
                 </s-paragraph>
                 <s-link href={dashboardUrl} target="_blank">
                   Open your Shield dashboard

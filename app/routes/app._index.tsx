@@ -198,6 +198,13 @@ export default function Index() {
     verificationFetcher.data?.connected ??
     connectionFetcher.data?.connected ??
     initial.connected;
+  const siteKey =
+    verificationFetcher.data?.siteKey ?? connectionFetcher.data?.siteKey ?? initial.siteKey;
+  // Everything about the store's visits lives in the Shield dashboard; the app only holds the
+  // public key, so it sends the merchant there (the dashboard opens the matching site's Home).
+  const dashboardUrl = siteKey
+    ? `https://www.findip.net/shield/sites?siteKey=${encodeURIComponent(siteKey)}&utm_source=shopify&utm_medium=app&utm_campaign=shield_platform_block`
+    : "https://www.findip.net/shield/sites";
   const isSaving = connectionFetcher.state !== "idle";
   const isVerifying = verificationFetcher.state !== "idle";
 
@@ -251,7 +258,7 @@ export default function Index() {
                   Visit the storefront with analytics consent enabled, then confirm the event in Shield.
                 </s-paragraph>
               </s-stack>
-              <s-link href="https://findip.net/shield/sites" target="_blank">
+              <s-link href={dashboardUrl} target="_blank">
                 Open events
               </s-link>
             </s-grid>
@@ -297,6 +304,20 @@ export default function Index() {
             {connected ? "Connected" : "Not connected"}
           </s-badge>
           <s-paragraph>Storefront: {initial.shopDomain}</s-paragraph>
+          {connected ? (
+            <s-box border="base" borderRadius="base" padding="base">
+              <s-stack direction="block" gap="small-200">
+                <s-heading>Your Shield dashboard</s-heading>
+                <s-paragraph color="subdued">
+                  Is it working, what happened this week, and what to do: all of it is in Shield, under this
+                  store's Home.
+                </s-paragraph>
+                <s-link href={dashboardUrl} target="_blank">
+                  Open your Shield dashboard
+                </s-link>
+              </s-stack>
+            </s-box>
+          ) : null}
           <verificationFetcher.Form method="post">
             <input type="hidden" name="intent" value="verify" />
             <s-button
